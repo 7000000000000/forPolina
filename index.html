@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>
+        html, body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            background: black;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* CENTER CONTAINER */
+        #text-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+            z-index: 2;
+            text-align: center;
+            position: absolute;
+        }
+
+        #text {
+            font-size: 20px;
+            color: white;
+            max-width: 750px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            opacity: 1;
+            transition: opacity 6s ease;
+        }
+
+        /* GOODBYE TEXT */
+        #goodbye {
+            position: absolute;
+            font-size: 32px;
+            color: white;
+            opacity: 0;
+            letter-spacing: 3px;
+            transition: opacity 3s ease;
+        }
+
+        /* HINT */
+        #hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 2px;
+            transition: opacity 1.5s ease, transform 1.5s ease;
+            pointer-events: none;
+        }
+
+        .hint-hide {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.9);
+        }
+    </style>
+</head>
+
+<body onclick="startExperience()">
+
+<canvas id="snow"></canvas>
+
+<div id="hint">click anywhere</div>
+
+<div id="text-container">
+    <div id="text"></div>
+</div>
+
+<div id="goodbye">goodbye</div>
+
+<audio id="mellow" loop>
+    <source src="mellow.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+let started = false;
+
+const audio = document.getElementById("mellow");
+const textEl = document.getElementById("text");
+const goodbyeEl = document.getElementById("goodbye");
+
+// ---------- FULL TEXT ----------
+const fullText =
+`We met four years ago and I still look back on it as the start of something that ended up meaning a lot more to me than I understood at the time It was real and it became a big part of my life and my routine in a way I only fully realized after it was gone
+
+Its been six months since we broke up and I wont pretend Ive just moved past it I think about you every day and it is dramatic and overwhelming all the time It is a steady hurt that hasnt really left since we stopped being what we were
+
+Ive had time to sit with everything properly to understand my part in it and to think about what I wish I had done differently More than anything I miss you I miss what we had and I miss you being in my life in a way that felt natural without effort You are the first and the last girl Ill ever be with in the way that nothing after you ever felt the same and nothing before you ever mattered like this You are the first girl I ever told my parents about and the first girl I ever truly brought into my life like that
+
+Im not trying to force anything that isnt there but I also dont want to pretend Im indifferent If there ever comes a point where we can try again properly with everything weve learned I would want that Id choose it and Id take it seriously Until then Im just being honest about the fact that I havent stopped caring and I havent stopped hoping So please come back okay?`;
+
+// ---------- TYPEWRITER (CONSTANT SPEED) ----------
+function typeText(text, speed = 45, done) {
+    let i = 0;
+    let output = "";
+
+    function step() {
+        if (i >= text.length) {
+            done();
+            return;
+        }
+
+        output += text.charAt(i);
+        textEl.innerHTML = output;
+        i++;
+
+        // CONSTANT SPEED ONLY
+        setTimeout(step, speed);
+    }
+
+    textEl.innerHTML = "";
+    step();
+}
+// ---------- START ----------
+function startExperience() {
+    if (started) return;
+    started = true;
+
+    document.getElementById("hint").classList.add("hint-hide");
+
+    audio.volume = 0.23;
+    audio.play().catch(() => {});
+
+    typeText(fullText, 45, () => {
+
+        // wait before fade
+        setTimeout(() => {
+
+            // fade out text
+            textEl.style.opacity = 0;
+
+            // after fade completes → show goodbye
+            setTimeout(() => {
+                goodbyeEl.style.opacity = 1;
+            }, 6000);
+
+        }, 2500);
+    });
+}
+
+// ---------- SNOW ----------
+const canvas = document.getElementById("snow");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let flakes = [];
+
+for (let i = 0; i < 120; i++) {
+    flakes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        s: Math.random() * 1 + 0.5
+    });
+}
+
+function drawSnow() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "white";
+
+    for (let f of flakes) {
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+        ctx.fill();
+
+        f.y += f.s;
+        if (f.y > canvas.height) {
+            f.y = 0;
+            f.x = Math.random() * canvas.width;
+        }
+    }
+
+    requestAnimationFrame(drawSnow);
+}
+
+drawSnow();
+</script>
+
+</body>
+</html>
